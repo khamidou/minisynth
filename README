@@ -1,0 +1,4 @@
+This minisynth, a very very crude FM synthesizer written in Javascript.
+
+It uses dynamicaudio.js for audio output, so it works okay in firefox but the 
+audio is shopped in chrome and others because of flash.

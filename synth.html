@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>dynamicaudio demo</title>
+    <script type="text/javascript" src="dynamicaudio-src.js"></script>
+</head>
+
+<body>
+    <input type="text" size="4" id="freq" value="440"><label for="hz">Hz</label>
+    <button onclick="generateWaveform()">set</button>
+    <button onclick="start()">play</button>
+    <button onclick="stop()">stop</button>
+    
+    <script type="text/javascript" charset="utf-8">
+        
+        var sampledata = [];
+        var freq = 440;
+        var interval = null;
+        var dynamicaudio = new DynamicAudio({'swf': 'dynamicaudio.swf'});
+        
+        function play() {
+            var repeats = 0;
+            interval = setInterval(function() {
+                var n = Math.ceil(freq / 100) * 2;
+                for (var i=0; i < n; i++) {
+                    dynamicaudio.write(sampledata);
+                }
+
+                repeats += 1;
+                if (repeats > 50) {
+                    if (interval != null) {
+                        clearInterval(interval);
+                        interval = null;
+                    }
+                }
+
+            }, 10);
+        }
+
+        function stop() {
+            if (interval != null) {
+                clearInterval(interval);
+                interval = null;
+            }
+        }
+
+        document.onkeydown= function(key){ handleKeypresses(key); }
+
+        freqTable = {
+            "87" : "260", // C4, which is mapped to W
+            "83": "270", // C#4
+            "88" : "290", // D4
+        }
+
+        function handleKeypresses(evt) {
+            if(evt.keyCode in freqTable) {
+                console.log(freqTable[evt.keyCode]);
+                generateWaveform(freqTable[evt.keyCode]);
+                play();
+            }
+        }
+
+        function generateWaveform(freq) {
+            // we're playing at 44.1kHz, so figure out how many samples
+            // will give us one full period
+            var samples = 44100 / freq;
+            sampledata = Array(Math.round(samples));
+            for (var i=0; i < sampledata.length; i++) {
+                sampledata[i] = Math.sin(2*Math.PI * (i / sampledata.length));
+            }
+        }
+
+    </script>
+</body>
