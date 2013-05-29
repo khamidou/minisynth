@@ -3,15 +3,12 @@
 <head>
     <title>dynamicaudio demo</title>
     <script type="text/javascript" src="dynamicaudio-src.js"></script>
+    <script type="text/javascript" src="sink.js"></script>
 </head>
 
 <body>
-    <input type="text" size="4" id="freq" value="440"><label for="hz">Hz</label>
-    <button onclick="generateWaveform()">set</button>
-    <button onclick="start()">play</button>
-    <button onclick="stop()">stop</button>
-    
-    <script type="text/javascript" charset="utf-8">
+   
+    <script type="text/notjavascript" charset="utf-8">
         
         var sampledata = [];
         var freq = 440;
@@ -44,6 +41,30 @@
             }
         }
 
+        function generateWaveform(freq) {
+            // we're playing at 44.1kHz, so figure out how many samples
+            // will give us one full period
+            var samples = 44100 / freq;
+            sampledata = Array(Math.round(samples));
+            for (var i=0; i < sampledata.length; i++) {
+                sampledata[i] = Math.sin(2*Math.PI * (i / sampledata.length));
+            }
+        }
+
+    </script>
+    <script type="text/javascript" charset="utf-8">
+        var k, v, n = 0;
+        var sink = Sink();
+        var buffer = new Float32Array(100000);
+        k = 2*Math.PI*440/sink.sampleRate;
+        for (var j=0; j< buffer.length; j+=2, n++) {
+                    v = Math.sin(k*n);
+                    buffer[j] = v;
+                    buffer[j+1] = v;
+        }
+
+        sink.writeBufferAsync(buffer);
+
         document.onkeydown= function(key){ handleKeypresses(key); }
 
         freqTable = {
@@ -60,15 +81,7 @@
             }
         }
 
-        function generateWaveform(freq) {
-            // we're playing at 44.1kHz, so figure out how many samples
-            // will give us one full period
-            var samples = 44100 / freq;
-            sampledata = Array(Math.round(samples));
-            for (var i=0; i < sampledata.length; i++) {
-                sampledata[i] = Math.sin(2*Math.PI * (i / sampledata.length));
-            }
-        }
 
     </script>
+ 
 </body>
