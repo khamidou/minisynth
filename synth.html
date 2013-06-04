@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>dynamicaudio demo</title>
-    <script type="text/javascript" src="dynamicaudio-src.js"></script>
+    <title>Minisynth</title>
     <script type="text/javascript" src="sink.js"></script>
 </head>
 
@@ -55,15 +54,18 @@
     <script type="text/javascript" charset="utf-8">
         var k, v, n = 0;
         var sink = Sink();
-        var buffer = new Float32Array(100000);
-        k = 2*Math.PI*440/sink.sampleRate;
-        for (var j=0; j< buffer.length; j+=2, n++) {
-                    v = Math.sin(k*n);
-                    buffer[j] = v;
-                    buffer[j+1] = v;
-        }
 
-        sink.writeBufferAsync(buffer);
+        function modulateWave(freq) {
+            var buffer = new Float32Array(100000);
+            k = 2*Math.PI*freq/sink.sampleRate;
+            for (var j=0; j< buffer.length; j+=2, n++) {
+                        v = Math.sin(k*n);
+                        buffer[j] = v;
+                        buffer[j+1] = v;
+            }
+            
+            sink.writeBufferAsync(buffer);
+        }
 
         document.onkeydown= function(key){ handleKeypresses(key); }
 
@@ -75,9 +77,7 @@
 
         function handleKeypresses(evt) {
             if(evt.keyCode in freqTable) {
-                console.log(freqTable[evt.keyCode]);
-                generateWaveform(freqTable[evt.keyCode]);
-                play();
+                modulateWave(freqTable[evt.keyCode]);
             }
         }
 
