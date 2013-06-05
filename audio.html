@@ -17,8 +17,21 @@
         </div>
 
         <div data-role="content">
+
+            <fieldset data-role="controlgroup" class="operators" data-type="horizontal">
+                    <legend>Carrier wave type:</legend>
+                    <input type="radio" id="op1" value="sin" />
+                    <label for="op1">Op 1</label>
+
+                    <input type="radio" id="op2" value="2sin" />
+                    <label for="op2">Op 2</label>
+            </fieldset>
+
             <label for="modfreq">Modulator frequency:</label>
             <input type="range" name="slider-1" id="modfreq" value="100" min="0" max="4000" />
+            <label for="modamp">Modulator amplitude:</label>
+            <input type="range" name="slider-2" id="modamp" value="10" min="0" max="100" />
+
 
             <a data-role="button" id="A4">A4</a> 
         </div>
@@ -33,6 +46,23 @@
 
             var ac = new AudioContext();
 
+            function operator1(j, basefreq, phaseIntensity, phaseFreq) {
+                return Math.sin(2*Math.PI * basefreq * j / 44100 + phaseIntensity *
+                       Math.cos(2 * Math.PI * phaseFreq * j / 44100));
+            }
+
+            function operator2(j, basefreq, phaseIntensity, phaseFreq) {
+                /* // square wave */
+                return Math.cos(2*Math.PI * basefreq * j / 44100 + phaseIntensity *
+                    Math.cos(2 * Math.PI * phaseFreq * j / 44100)) + 
+                    Math.cos(2*Math.PI * 3 * basefreq * j / 44100 + phaseIntensity *
+                                        Math.cos(2 * Math.PI * phaseFreq * j / 44100)) + 
+                    Math.cos(2*Math.PI * 5 * basefreq * j / 44100 + phaseIntensity *
+                                        Math.cos(2 * Math.PI * phaseFreq * j / 44100));
+            }
+
+
+
             function createNode(basefreq, phaseFreq, phaseIntensity) {
                 var node = ac.createScriptProcessor(256,1,1);
 
@@ -42,31 +72,26 @@
                     var n = 0;
 
                     for (var j=0; j< output.length; j++) {
-                    v = Math.sin(2*Math.PI * basefreq * j / 44100 + phaseIntensity *
-                                                                    Math.cos(2 * Math.PI * phaseFreq * j / 44100));
-                                output[j] = v;
+                                output[j] = operator2(j, basefreq, phaseIntensity, phaseFreq);
                     }
                 }
 
                 return node;
             }
 
-            freqTable = {
-                "87" : "260", // C4, which is mapped to W
-                "83": "270", // C#4
-                "88" : "290", // D4
-            }
-
             node = undefined;
 
             $("#A4").bind("vmousedown", function() { 
                     var modfreq = parseInt($("#modfreq").attr("value"));
-                    node = createNode(440, modfreq, -1.5);
+                    var modamp = parseInt($("#modamp").attr("value"));
+                    node = createNode(880, modamp, modfreq);
                     node.connect(ac.destination);
             });
             $("#A4").bind("vmouseup", function() { 
-                    if(typeof(node) != "undefined")
+                    if(typeof(node) != "undefined" && node != null) {
                         node.disconnect();
+                        node = null;
+                    }
             });
 
         });
